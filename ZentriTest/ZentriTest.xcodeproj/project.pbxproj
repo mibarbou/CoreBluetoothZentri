@@ -15,9 +15,6 @@
 		D04FE8AA21EF74A8003600EF /* PeripheralCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = D04FE8A821EF74A8003600EF /* PeripheralCell.swift */; };
 		D04FE8AB21EF74A8003600EF /* PeripheralCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = D04FE8A921EF74A8003600EF /* PeripheralCell.xib */; };
 		D04FE8AE21EF893B003600EF /* ServicesTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D04FE8AD21EF893B003600EF /* ServicesTableViewController.swift */; };
-		D04FE8B021EF8967003600EF /* CharacteristicsTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D04FE8AF21EF8967003600EF /* CharacteristicsTableViewController.swift */; };
-		D04FE8B721F08127003600EF /* ServiceCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = D04FE8B521F08127003600EF /* ServiceCell.swift */; };
-		D04FE8B821F08127003600EF /* ServiceCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = D04FE8B621F08127003600EF /* ServiceCell.xib */; };
 		D04FE8BB21F0814B003600EF /* CharacteristicCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = D04FE8B921F0814B003600EF /* CharacteristicCell.swift */; };
 		D04FE8BC21F0814B003600EF /* CharacteristicCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = D04FE8BA21F0814B003600EF /* CharacteristicCell.xib */; };
 /* End PBXBuildFile section */
@@ -33,9 +30,6 @@
 		D04FE8A821EF74A8003600EF /* PeripheralCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PeripheralCell.swift; sourceTree = "<group>"; };
 		D04FE8A921EF74A8003600EF /* PeripheralCell.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = PeripheralCell.xib; sourceTree = "<group>"; };
 		D04FE8AD21EF893B003600EF /* ServicesTableViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServicesTableViewController.swift; sourceTree = "<group>"; };
-		D04FE8AF21EF8967003600EF /* CharacteristicsTableViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CharacteristicsTableViewController.swift; sourceTree = "<group>"; };
-		D04FE8B521F08127003600EF /* ServiceCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServiceCell.swift; sourceTree = "<group>"; };
-		D04FE8B621F08127003600EF /* ServiceCell.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = ServiceCell.xib; sourceTree = "<group>"; };
 		D04FE8B921F0814B003600EF /* CharacteristicCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CharacteristicCell.swift; sourceTree = "<group>"; };
 		D04FE8BA21F0814B003600EF /* CharacteristicCell.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = CharacteristicCell.xib; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -73,7 +67,6 @@
 				D04FE89621EF5017003600EF /* AppDelegate.swift */,
 				D04FE89821EF5017003600EF /* ViewController.swift */,
 				D04FE8AD21EF893B003600EF /* ServicesTableViewController.swift */,
-				D04FE8AF21EF8967003600EF /* CharacteristicsTableViewController.swift */,
 				D04FE89A21EF5017003600EF /* Main.storyboard */,
 				D04FE8AC21EF74AD003600EF /* Cells */,
 				D04FE89D21EF5019003600EF /* Assets.xcassets */,
@@ -88,8 +81,6 @@
 			children = (
 				D04FE8A821EF74A8003600EF /* PeripheralCell.swift */,
 				D04FE8A921EF74A8003600EF /* PeripheralCell.xib */,
-				D04FE8B521F08127003600EF /* ServiceCell.swift */,
-				D04FE8B621F08127003600EF /* ServiceCell.xib */,
 				D04FE8B921F0814B003600EF /* CharacteristicCell.swift */,
 				D04FE8BA21F0814B003600EF /* CharacteristicCell.xib */,
 			);
@@ -155,7 +146,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				D04FE8A121EF5019003600EF /* LaunchScreen.storyboard in Resources */,
-				D04FE8B821F08127003600EF /* ServiceCell.xib in Resources */,
 				D04FE8BC21F0814B003600EF /* CharacteristicCell.xib in Resources */,
 				D04FE89E21EF5019003600EF /* Assets.xcassets in Resources */,
 				D04FE89C21EF5017003600EF /* Main.storyboard in Resources */,
@@ -170,10 +160,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				D04FE8B021EF8967003600EF /* CharacteristicsTableViewController.swift in Sources */,
 				D04FE89921EF5017003600EF /* ViewController.swift in Sources */,
 				D04FE8AE21EF893B003600EF /* ServicesTableViewController.swift in Sources */,
-				D04FE8B721F08127003600EF /* ServiceCell.swift in Sources */,
 				D04FE8BB21F0814B003600EF /* CharacteristicCell.swift in Sources */,
 				D04FE8AA21EF74A8003600EF /* PeripheralCell.swift in Sources */,
 				D04FE89721EF5017003600EF /* AppDelegate.swift in Sources */,
