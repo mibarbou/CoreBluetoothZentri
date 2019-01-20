@@ -17,7 +17,6 @@ class ServicesTableViewController: UITableViewController {
     let characteristicTruconnectModeUUID = CBUUID(string: "20b9794f-da1a-4d14-8014-a0fb9cefb2f7")
     
     var streamMode = 1
-    let localMode = 2
     var remoteMode = 3
     
     let centralManager: CBCentralManager
@@ -25,6 +24,10 @@ class ServicesTableViewController: UITableViewController {
     
     var services: [CBService] = []
     var characteristics: [CBCharacteristic] = []
+    
+    var rxCharacteristic: CBCharacteristic?
+    var txCharacteristic: CBCharacteristic?
+    var modeCharacteristic: CBCharacteristic?
     
     init(manager: CBCentralManager, peripheral: CBPeripheral) {
         self.centralManager = manager
@@ -103,8 +106,8 @@ extension ServicesTableViewController: CBCentralManagerDelegate {
     
     func centralManager(_ central: CBCentralManager, didConnect peripheral: CBPeripheral) {
         print("Connected!")
-        peripheral.delegate = self
-        peripheral.discoverServices([serviceTruconnectUUID])
+        self.peripheral.delegate = self
+        self.peripheral.discoverServices([serviceTruconnectUUID])
     }
     
     func centralManager(_ central: CBCentralManager, didFailToConnect peripheral: CBPeripheral, error: Error?) {
@@ -128,15 +131,30 @@ extension ServicesTableViewController: CBPeripheralDelegate {
     
     func peripheral(_ peripheral: CBPeripheral, didDiscoverCharacteristicsFor service: CBService, error: Error?) {
         guard let characteristics = service.characteristics else { return }
-        _ = characteristics.map{ subscribeTo(characteristic: $0) }
         self.characteristics = characteristics
+        _ = characteristics.map{ subscribeTo(characteristic: $0) }
         self.tableView.reloadData()
-        
     }
     
     func peripheral(_ peripheral: CBPeripheral, didUpdateValueFor characteristic: CBCharacteristic, error: Error?) {
-        let characteriscticName = getNameFor(characteristic: characteristic)
-        print("updated characteristic: \(characteriscticName)")
+        switch characteristic.uuid {
+        case characteristicTruconnectPeripheralTXUUID:
+            guard let data = characteristic.value else { return }
+            var values = [UInt8](data)
+            data.copyBytes(to: &values, count: data.count)
+            let responseString = String(bytes: data, encoding: .utf8)
+            print("MODE: \(String(describing: responseString))")
+            break
+        case characteristicTruconnectModeUUID:
+            guard let data = characteristic.value else { return }
+            var values = [UInt8](data)
+            data.copyBytes(to: &values, count: data.count)
+            let modeString = String(bytes: data, encoding: .utf8)
+            print("MODE: \(String(describing: modeString))")
+            break
+        default:
+            break
+        }
     }
     
     
@@ -181,20 +199,16 @@ extension ServicesTableViewController {
                                                 print("activate stream mode")
                                                 self.writeStreamMode(characteristic: characteristic)
                                             }
-        let actionLocalMode = UIAlertAction(title: "Local mode",
-                                             style: .default) { action in
-                                                print("activate Local mode")
-        }
         
         let actionRemoteMode = UIAlertAction(title: "Remote mode",
                                              style: .default) { action in
                                                 print("activate remote mode")
+                                                self.writeRemoteMode(characteristic: characteristic)
         }
         let cancelAction = UIAlertAction(title: "Cancel",
                                          style: .cancel,
                                          handler: nil)
         alert.addAction(actionStreamMode)
-        alert.addAction(actionLocalMode)
         alert.addAction(actionRemoteMode)
         alert.addAction(cancelAction)
         
@@ -204,10 +218,12 @@ extension ServicesTableViewController {
     fileprivate func subscribeTo(characteristic: CBCharacteristic) {
         switch characteristic.uuid {
         case characteristicTruconnectPeripheralRXUUID:
-            break
+            rxCharacteristic = characteristic
         case characteristicTruconnectPeripheralTXUUID:
-            break
+            txCharacteristic = characteristic
+            self.peripheral.setNotifyValue(true, for: characteristic)
         case characteristicTruconnectModeUUID:
+            modeCharacteristic = characteristic
             self.peripheral.setNotifyValue(true, for: characteristic)
             break
         default:
@@ -215,15 +231,22 @@ extension ServicesTableViewController {
         }
     }
     
+    
     fileprivate func writeStreamMode(characteristic: CBCharacteristic) {
         let data = Data(bytes: &streamMode,
-                        count: MemoryLayout.size(ofValue: streamMode))
+                        count: 1)
         self.peripheral.writeValue(data, for: characteristic, type: .withResponse)
     }
     
-    fileprivate func writeRemodeMode(characteristic: CBCharacteristic) {
+    fileprivate func writeRemoteMode(characteristic: CBCharacteristic) {
         let data = Data(bytes: &remoteMode,
-                        count: MemoryLayout.size(ofValue: remoteMode))
+                        count: 1)
+        self.peripheral.writeValue(data, for: characteristic, type: .withResponse)
+    }
+    
+    fileprivate func write(command: String, characteristic: CBCharacteristic) {
+        let parsedCommand = command
+        guard let data = parsedCommand.data(using: .utf8) else { return }
         self.peripheral.writeValue(data, for: characteristic, type: .withResponse)
     }
 }
