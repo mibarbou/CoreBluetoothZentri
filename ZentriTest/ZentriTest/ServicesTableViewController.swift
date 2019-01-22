@@ -84,8 +84,18 @@ class ServicesTableViewController: UITableViewController {
         
         switch characteristic.uuid {
         case characteristicTruconnectPeripheralRXUUID:
+            let dict: [String: Any] = ["met": "w_lck",
+                                       "par": 1,
+                                       "usid": 653,
+                                       "id": 455]
+            write(command: dict, characteristic: characteristic)
             break
         case characteristicTruconnectPeripheralTXUUID:
+            let dict: [String: Any] = ["met": "w_lck",
+                                       "par": 1,
+                                       "usid": 653,
+                                       "id": 455]
+            write(command: dict, characteristic: characteristic)
             break
         case characteristicTruconnectModeUUID:
             showModeActionSheet(characteristic: characteristic)
@@ -138,6 +148,13 @@ extension ServicesTableViewController: CBPeripheralDelegate {
     
     func peripheral(_ peripheral: CBPeripheral, didUpdateValueFor characteristic: CBCharacteristic, error: Error?) {
         switch characteristic.uuid {
+        case characteristicTruconnectPeripheralRXUUID:
+            guard let data = characteristic.value else { return }
+            var values = [UInt8](data)
+            data.copyBytes(to: &values, count: data.count)
+            let responseString = String(bytes: data, encoding: .utf8)
+            print("MODE: \(String(describing: responseString))")
+            break
         case characteristicTruconnectPeripheralTXUUID:
             guard let data = characteristic.value else { return }
             var values = [UInt8](data)
@@ -244,9 +261,67 @@ extension ServicesTableViewController {
         self.peripheral.writeValue(data, for: characteristic, type: .withResponse)
     }
     
-    fileprivate func write(command: String, characteristic: CBCharacteristic) {
-        let parsedCommand = command
-        guard let data = parsedCommand.data(using: .utf8) else { return }
+    fileprivate func write(command: Dictionary<String, Any>, characteristic: CBCharacteristic) {
+        let stringCommand = "EaE+{\"met\":\"w_lck\",\"par\":0,\"usid\":653,\"id\":455}85\r\n"//parseData(command: command)
+        guard let data = stringCommand.data(using: .utf8) else { return }
         self.peripheral.writeValue(data, for: characteristic, type: .withResponse)
+    }
+    
+    fileprivate func parseData(command: Dictionary<String, Any>) -> String {
+        let cmd = JSONStringify(value: command as AnyObject) + "\r\n"
+        let preCmd = getCharacterFromCmd(order: cmd)
+        let vcmd = preCmd + cmd
+        let postCmd = getChecksum(order: vcmd)
+        var buf = [UInt8](String(vcmd).utf8)
+        buf.append(postCmd)
+        let size = cmd.utf8.count
+        var eAE:[UInt8] = [UInt8](String("EaE").utf8)
+        eAE.append(UInt8(size))
+        let preCmdB:[UInt8] = eAE
+        var bufB:[UInt8] = preCmdB + [UInt8](String(cmd).utf8)
+        let postCmdB = getChecksumBinary(order: bufB)
+        bufB.append(postCmdB)
+        print("ORDER: ", vcmd + String(postCmd))
+        
+        let data = Data(bufB)
+        guard let string = String(data: data, encoding: .utf8) else { return "" }
+        
+        return string
+    }
+    
+    func JSONStringify(value: AnyObject, prettyPrinted:Bool = false) -> String {
+        let options = prettyPrinted ? JSONSerialization.WritingOptions.prettyPrinted : JSONSerialization.WritingOptions(rawValue: 0)
+        if JSONSerialization.isValidJSONObject(value) {
+            do{
+                let data = try JSONSerialization.data(withJSONObject: value, options: options)
+                if let string = NSString(data: data, encoding: String.Encoding.utf8.rawValue) {
+                    return string as String
+                }
+            }catch {}
+        }
+        return ""
+    }
+    
+    func getCharacterFromCmd(order: String) -> String{
+        let size = order.utf8.count
+        return "EaE" + String(Character(UnicodeScalar(size)!))
+    }
+    
+    func getChecksum(order: String) -> UInt8{
+        var a: UInt32 = 0
+        for scalar in order.unicodeScalars {
+            a += scalar.value
+        }
+        let result = a % 256
+        return UInt8(result)
+    }
+    
+    func getChecksumBinary(order: [UInt8]) -> UInt8{
+        var a: UInt32 = 0
+        for item in order {
+            a += UInt32(item)
+        }
+        let result = a % 256
+        return UInt8(result)
     }
 }
