@@ -48,7 +48,7 @@ class ServicesTableViewController: UITableViewController {
     
     func setup() {
         self.title = "Characteristics"
-        tableView.register(UINib(nibName: CharacteristicCell.identifier, bundle: .main), forCellReuseIdentifier: CharacteristicCell.identifier)
+        tableView.register(UINib(nibName: FunctionalityCell.identifier, bundle: .main), forCellReuseIdentifier: FunctionalityCell.identifier)
         tableView.rowHeight = 60.0
 		tableView.isUserInteractionEnabled = false
     }
@@ -64,7 +64,7 @@ class ServicesTableViewController: UITableViewController {
     }
 
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: CharacteristicCell.identifier, for: indexPath) as! CharacteristicCell
+        let cell = tableView.dequeueReusableCell(withIdentifier: FunctionalityCell.identifier, for: indexPath) as! FunctionalityCell
 		
         cell.nameLabel.text = functionalities[indexPath.row].name
         return cell
