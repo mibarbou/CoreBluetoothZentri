@@ -7,7 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		2F0E66AC21FB26A100CC840C /* OrderedDictionary.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F0E66AB21FB26A100CC840C /* OrderedDictionary.swift */; };
 		2F0E66AE21FB2C2F00CC840C /* Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F0E66AD21FB2C2F00CC840C /* Extensions.swift */; };
 		2F0E66B021FB2C5E00CC840C /* Bapi.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F0E66AF21FB2C5E00CC840C /* Bapi.swift */; };
 		2F0E66B221FB554800CC840C /* Functionality.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F0E66B121FB554800CC840C /* Functionality.swift */; };
@@ -24,7 +23,6 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		2F0E66AB21FB26A100CC840C /* OrderedDictionary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrderedDictionary.swift; sourceTree = "<group>"; };
 		2F0E66AD21FB2C2F00CC840C /* Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Extensions.swift; sourceTree = "<group>"; };
 		2F0E66AF21FB2C5E00CC840C /* Bapi.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Bapi.swift; sourceTree = "<group>"; };
 		2F0E66B121FB554800CC840C /* Functionality.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Functionality.swift; sourceTree = "<group>"; };
@@ -80,7 +78,6 @@
 				D04FE89D21EF5019003600EF /* Assets.xcassets */,
 				D04FE89F21EF5019003600EF /* LaunchScreen.storyboard */,
 				D04FE8A221EF5019003600EF /* Info.plist */,
-				2F0E66AB21FB26A100CC840C /* OrderedDictionary.swift */,
 				2F0E66AD21FB2C2F00CC840C /* Extensions.swift */,
 				2F0E66AF21FB2C5E00CC840C /* Bapi.swift */,
 				2F0E66B121FB554800CC840C /* Functionality.swift */,
@@ -176,7 +173,6 @@
 				2F0E66B021FB2C5E00CC840C /* Bapi.swift in Sources */,
 				D04FE8AE21EF893B003600EF /* ServicesTableViewController.swift in Sources */,
 				D04FE8BB21F0814B003600EF /* CharacteristicCell.swift in Sources */,
-				2F0E66AC21FB26A100CC840C /* OrderedDictionary.swift in Sources */,
 				D04FE8AA21EF74A8003600EF /* PeripheralCell.swift in Sources */,
 				D04FE89721EF5017003600EF /* AppDelegate.swift in Sources */,
 				2F0E66B221FB554800CC840C /* Functionality.swift in Sources */,
