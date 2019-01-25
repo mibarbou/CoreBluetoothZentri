@@ -8,7 +8,7 @@
 
 import UIKit
 
-class CharacteristicCell: UITableViewCell {
+class FunctionalityCell: UITableViewCell {
     static let identifier = "CharacteristicCell"
     
     @IBOutlet weak var nameLabel: UILabel!
