@@ -9,7 +9,6 @@
 import UIKit
 import CoreBluetooth
 
-
 class ServicesTableViewController: UITableViewController {
     let serviceTruconnectUUID = CBUUID(string: "175f8f23-a570-49bd-9627-815a6a27de2a")
     let characteristicTruconnectPeripheralRXUUID = CBUUID(string: "1cce1ea8-bd34-4813-a00a-c76e028fadcb")
@@ -28,6 +27,8 @@ class ServicesTableViewController: UITableViewController {
     var rxCharacteristic: CBCharacteristic?
     var txCharacteristic: CBCharacteristic?
     var modeCharacteristic: CBCharacteristic?
+	
+	var functionalities = Functionality.allCases
     
     init(manager: CBCentralManager, peripheral: CBPeripheral) {
         self.centralManager = manager
@@ -49,6 +50,7 @@ class ServicesTableViewController: UITableViewController {
         self.title = "Characteristics"
         tableView.register(UINib(nibName: CharacteristicCell.identifier, bundle: .main), forCellReuseIdentifier: CharacteristicCell.identifier)
         tableView.rowHeight = 60.0
+		tableView.isUserInteractionEnabled = false
     }
 
     // MARK: - Table view data source
@@ -58,51 +60,24 @@ class ServicesTableViewController: UITableViewController {
     }
 
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return characteristics.count
+        return functionalities.count
     }
 
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: CharacteristicCell.identifier, for: indexPath) as! CharacteristicCell
-        let characteristic = characteristics[indexPath.row]
-        cell.nameLabel.text = getNameFor(characteristic: characteristic)
+		
+        cell.nameLabel.text = functionalities[indexPath.row].name
         return cell
     }
     
     // MARK: - Table view delegate
- 
-    override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        let characteristic = characteristics[indexPath.row]
-        if characteristic.properties.contains(.read) {
-            print("\(characteristic.uuid): properties contains .read")
-        }
-        if characteristic.properties.contains(.notify) {
-            print("\(characteristic.uuid): properties contains .notify")
-        }
-        if characteristic.properties.contains(.write) {
-            print("\(characteristic.uuid): properties contains .write")
-        }
-        
-        switch characteristic.uuid {
-        case characteristicTruconnectPeripheralRXUUID:
-            let dict: [String: Any] = ["met": "w_lck",
-                                       "par": 1,
-                                       "usid": 653,
-                                       "id": 455]
-            write(command: dict, characteristic: characteristic)
-            break
-        case characteristicTruconnectPeripheralTXUUID:
-            let dict: [String: Any] = ["met": "w_lck",
-                                       "par": 1,
-                                       "usid": 653,
-                                       "id": 455]
-            write(command: dict, characteristic: characteristic)
-            break
-        case characteristicTruconnectModeUUID:
-            showModeActionSheet(characteristic: characteristic)
-            break
-        default:
-            break
-        }
+
+	
+	override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        let functionality = functionalities[indexPath.row]
+		if let bapiJSON = functionality.createBapi(id: 123) {
+			send(bapi: bapiJSON)
+		}
     }
 
 }
@@ -144,6 +119,7 @@ extension ServicesTableViewController: CBPeripheralDelegate {
         self.characteristics = characteristics
         _ = characteristics.map{ subscribeTo(characteristic: $0) }
         self.tableView.reloadData()
+		self.tableView.isUserInteractionEnabled = true
     }
     
     func peripheral(_ peripheral: CBPeripheral, didUpdateValueFor characteristic: CBCharacteristic, error: Error?) {
@@ -153,14 +129,14 @@ extension ServicesTableViewController: CBPeripheralDelegate {
             var values = [UInt8](data)
             data.copyBytes(to: &values, count: data.count)
             let responseString = String(bytes: data, encoding: .utf8)
-            print("MODE: \(String(describing: responseString))")
+            print("RX: \(String(describing: responseString))")
             break
         case characteristicTruconnectPeripheralTXUUID:
             guard let data = characteristic.value else { return }
             var values = [UInt8](data)
             data.copyBytes(to: &values, count: data.count)
             let responseString = String(bytes: data, encoding: .utf8)
-            print("MODE: \(String(describing: responseString))")
+            print("TX: \(String(describing: responseString))")
             break
         case characteristicTruconnectModeUUID:
             guard let data = characteristic.value else { return }
@@ -172,15 +148,6 @@ extension ServicesTableViewController: CBPeripheralDelegate {
         default:
             break
         }
-    }
-    
-    
-    func peripheral(_ peripheral: CBPeripheral, didWriteValueFor characteristic: CBCharacteristic, error: Error?) {
-        
-    }
-    
-    func peripheral(_ peripheral: CBPeripheral, didUpdateValueFor descriptor: CBDescriptor, error: Error?) {
-        
     }
 }
 
@@ -195,19 +162,7 @@ extension ServicesTableViewController {
     fileprivate func discoverCharacteristicsFor(service: CBService) {
         self.peripheral.discoverCharacteristics(nil, for: service)
     }
-    
-    fileprivate func getNameFor(characteristic: CBCharacteristic) -> String {
-        switch characteristic.uuid {
-        case characteristicTruconnectPeripheralRXUUID:
-            return "Rx characteristic"
-        case characteristicTruconnectPeripheralTXUUID:
-            return "Tx characteristic"
-        case characteristicTruconnectModeUUID:
-            return "Mode characteristic"
-        default:
-            return characteristic.uuid.uuidString
-        }
-    }
+	
     
     fileprivate func showModeActionSheet(characteristic: CBCharacteristic) {
         let alert = UIAlertController(title: "ZENTRI MODE", message: "Choose the mode", preferredStyle: .actionSheet)
@@ -238,10 +193,10 @@ extension ServicesTableViewController {
             rxCharacteristic = characteristic
         case characteristicTruconnectPeripheralTXUUID:
             txCharacteristic = characteristic
-            self.peripheral.setNotifyValue(true, for: characteristic)
+            self.peripheral.setNotifyValue(true, for: txCharacteristic!)
         case characteristicTruconnectModeUUID:
             modeCharacteristic = characteristic
-            self.peripheral.setNotifyValue(true, for: characteristic)
+            self.peripheral.setNotifyValue(true, for: modeCharacteristic!)
             break
         default:
             break
@@ -261,46 +216,57 @@ extension ServicesTableViewController {
         self.peripheral.writeValue(data, for: characteristic, type: .withResponse)
     }
     
-    fileprivate func write(command: Dictionary<String, Any>, characteristic: CBCharacteristic) {
-        let stringCommand = "EaE+{\"met\":\"w_lck\",\"par\":0,\"usid\":653,\"id\":455}85\r\n"//parseData(command: command)
-        guard let data = stringCommand.data(using: .utf8) else { return }
-        self.peripheral.writeValue(data, for: characteristic, type: .withResponse)
+	 func send(bapi: String) {
+		
+		let bapiCommand = parseData(bapiString: bapi)
+       	guard let data = bapiCommand.data(using: .utf8) else { return }
+		print("send bapi: \(bapiCommand)")
+
+		let length = data.count
+		let chunkSize = 20
+		var offset = 0
+		
+		repeat {
+			// get the length of the chunk
+			let thisChunkSize = ((length - offset) > chunkSize) ? chunkSize : (length - offset);
+			
+			// get the chunk
+			let chunk = data.subdata(in: offset..<offset + thisChunkSize )
+			
+			// -----------------------------------------------
+			// do something with that chunk of data...
+			// -----------------------------------------------
+			self.peripheral.writeValue(chunk, for: rxCharacteristic!, type: .withResponse)
+			// update the offset
+			offset += thisChunkSize;
+			
+		} while (offset < length);
+		
     }
     
-    fileprivate func parseData(command: Dictionary<String, Any>) -> String {
-        let cmd = JSONStringify(value: command as AnyObject) + "\r\n"
-        let preCmd = getCharacterFromCmd(order: cmd)
-        let vcmd = preCmd + cmd
-        let postCmd = getChecksum(order: vcmd)
-        var buf = [UInt8](String(vcmd).utf8)
-        buf.append(postCmd)
-        let size = cmd.utf8.count
+    fileprivate func parseData(bapiString: String) -> String {
+		
+        let eaeCharacter = getCharacterFromCmd(order: bapiString)
+        let bapi = eaeCharacter + bapiString
+        let checksumNumber = getChecksum(order: bapi)
+		
+		
+        var buf = [UInt8](String(bapi).utf8)
+        buf.append(checksumNumber)
+        let size = bapiString.utf8.count
         var eAE:[UInt8] = [UInt8](String("EaE").utf8)
         eAE.append(UInt8(size))
         let preCmdB:[UInt8] = eAE
-        var bufB:[UInt8] = preCmdB + [UInt8](String(cmd).utf8)
+        var bufB:[UInt8] = preCmdB + [UInt8](String(bapiString).utf8)
         let postCmdB = getChecksumBinary(order: bufB)
         bufB.append(postCmdB)
-        print("ORDER: ", vcmd + String(postCmd))
         
         let data = Data(bufB)
         guard let string = String(data: data, encoding: .utf8) else { return "" }
         
-        return string
+        return string + "\r\n"
     }
-    
-    func JSONStringify(value: AnyObject, prettyPrinted:Bool = false) -> String {
-        let options = prettyPrinted ? JSONSerialization.WritingOptions.prettyPrinted : JSONSerialization.WritingOptions(rawValue: 0)
-        if JSONSerialization.isValidJSONObject(value) {
-            do{
-                let data = try JSONSerialization.data(withJSONObject: value, options: options)
-                if let string = NSString(data: data, encoding: String.Encoding.utf8.rawValue) {
-                    return string as String
-                }
-            }catch {}
-        }
-        return ""
-    }
+	
     
     func getCharacterFromCmd(order: String) -> String{
         let size = order.utf8.count
