@@ -47,4 +47,60 @@ enum Functionality: CaseIterable {
 			return Bapi<String>(met: "r_dat", par: "null", id: id).toJsonString()
 		}
 	}
+	
+	func manageResponse(with json: String) {
+		
+		switch self {
+		case .block:
+			if let _ = json.toObject(BapiResponse<String>.self) {
+				print("block success")
+			}
+		case .unblock:
+			if let _ = json.toObject(BapiResponse<String>.self) {
+				print("unblock success")
+			}
+		case .readFirmwareVersion:
+			if let object = json.toObject(BapiResponse<Int>.self) {
+				print("firmware version is \(object.response ?? 0)")
+			}
+		case .readSerialNumber:
+			if let object = json.toObject(BapiResponse<Int>.self) {
+				print(object)
+			} else {
+				//This is always nil because charger answers r: 0000XXX as an integer which is a corrupted integer,
+				//so the toObject function does not recognize it as a correct data
+				print("error reading serial number")
+			}
+		case .readState:
+			if let object = json.toObject(BapiResponse<State>.self) {
+				print(object.response ?? "no state")
+			}
+		}
+	}	
+}
+
+struct State: Codable {
+	
+	let L1: Int
+	let L2: Int
+	let L3: Int
+	let st: Int
+	let cur: Int
+	let en: Int
+	let s: Int
+	let ps: Int
+	let usid: Int
+	
+	enum CodingKeys: String, CodingKey {
+		case L1
+		case L2
+		case L3
+		case st
+		case cur
+		case en
+		case s
+		case ps
+		case usid
+	}
+	
 }

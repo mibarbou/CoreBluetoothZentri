@@ -10,6 +10,8 @@
 		2F0E66AE21FB2C2F00CC840C /* Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F0E66AD21FB2C2F00CC840C /* Extensions.swift */; };
 		2F0E66B021FB2C5E00CC840C /* Bapi.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F0E66AF21FB2C5E00CC840C /* Bapi.swift */; };
 		2F0E66B221FB554800CC840C /* Functionality.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F0E66B121FB554800CC840C /* Functionality.swift */; };
+		2F0E66B421FEEE5600CC840C /* ResponseParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F0E66B321FEEE5600CC840C /* ResponseParser.swift */; };
+		2F0E66B621FF0D4500CC840C /* BapiResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F0E66B521FF0D4500CC840C /* BapiResponse.swift */; };
 		D04FE89721EF5017003600EF /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = D04FE89621EF5017003600EF /* AppDelegate.swift */; };
 		D04FE89921EF5017003600EF /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D04FE89821EF5017003600EF /* ViewController.swift */; };
 		D04FE89C21EF5017003600EF /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = D04FE89A21EF5017003600EF /* Main.storyboard */; };
@@ -26,6 +28,8 @@
 		2F0E66AD21FB2C2F00CC840C /* Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Extensions.swift; sourceTree = "<group>"; };
 		2F0E66AF21FB2C5E00CC840C /* Bapi.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Bapi.swift; sourceTree = "<group>"; };
 		2F0E66B121FB554800CC840C /* Functionality.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Functionality.swift; sourceTree = "<group>"; };
+		2F0E66B321FEEE5600CC840C /* ResponseParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResponseParser.swift; sourceTree = "<group>"; };
+		2F0E66B521FF0D4500CC840C /* BapiResponse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BapiResponse.swift; sourceTree = "<group>"; };
 		D04FE89321EF5017003600EF /* ZentriTest.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ZentriTest.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		D04FE89621EF5017003600EF /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		D04FE89821EF5017003600EF /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
@@ -81,6 +85,8 @@
 				2F0E66AD21FB2C2F00CC840C /* Extensions.swift */,
 				2F0E66AF21FB2C5E00CC840C /* Bapi.swift */,
 				2F0E66B121FB554800CC840C /* Functionality.swift */,
+				2F0E66B321FEEE5600CC840C /* ResponseParser.swift */,
+				2F0E66B521FF0D4500CC840C /* BapiResponse.swift */,
 			);
 			path = ZentriTest;
 			sourceTree = "<group>";
@@ -177,6 +183,8 @@
 				D04FE89721EF5017003600EF /* AppDelegate.swift in Sources */,
 				2F0E66B221FB554800CC840C /* Functionality.swift in Sources */,
 				2F0E66AE21FB2C2F00CC840C /* Extensions.swift in Sources */,
+				2F0E66B621FF0D4500CC840C /* BapiResponse.swift in Sources */,
+				2F0E66B421FEEE5600CC840C /* ResponseParser.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

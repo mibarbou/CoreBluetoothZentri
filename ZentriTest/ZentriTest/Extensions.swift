@@ -41,8 +41,19 @@ extension String {
 		}
 		catch {
 			return nil
-			
 		}
 		
+	}
+	
+	func countOf(character: Character) -> Int {
+		var count = 0
+		
+		self.forEach {
+			if $0 == character {
+				count = count + 1
+			}
+		}
+		
+		return count
 	}
 }
