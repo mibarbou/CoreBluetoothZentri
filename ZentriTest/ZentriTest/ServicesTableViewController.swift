@@ -9,7 +9,11 @@
 import UIKit
 import CoreBluetooth
 
-class ServicesTableViewController: UITableViewController {
+protocol BapiSender {
+	func send(bapi: String)
+}
+
+class ServicesTableViewController: UITableViewController, BapiSender {
     let serviceTruconnectUUID = CBUUID(string: "175f8f23-a570-49bd-9627-815a6a27de2a")
     let characteristicTruconnectPeripheralRXUUID = CBUUID(string: "1cce1ea8-bd34-4813-a00a-c76e028fadcb")
     let characteristicTruconnectPeripheralTXUUID = CBUUID(string: "cacc07ff-ffff-4c48-8fae-a9ef71b75e26")
@@ -29,6 +33,9 @@ class ServicesTableViewController: UITableViewController {
     var modeCharacteristic: CBCharacteristic?
 	
 	var functionalities = Functionality.allCases
+	var lastFunctionality: Functionality? = nil
+	
+	let parser = ResponseParser()
     
     init(manager: CBCentralManager, peripheral: CBPeripheral) {
         self.centralManager = manager
@@ -47,7 +54,7 @@ class ServicesTableViewController: UITableViewController {
     }
     
     func setup() {
-        self.title = "Characteristics"
+        self.title = "Functionalities"
         tableView.register(UINib(nibName: FunctionalityCell.identifier, bundle: .main), forCellReuseIdentifier: FunctionalityCell.identifier)
         tableView.rowHeight = 60.0
 		tableView.isUserInteractionEnabled = false
@@ -75,8 +82,11 @@ class ServicesTableViewController: UITableViewController {
 	
 	override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         let functionality = functionalities[indexPath.row]
+		
 		if let bapiJSON = functionality.createBapi(id: 123) {
 			send(bapi: bapiJSON)
+			tableView.isUserInteractionEnabled = false
+			lastFunctionality = functionality
 		}
     }
 
@@ -135,8 +145,10 @@ extension ServicesTableViewController: CBPeripheralDelegate {
             guard let data = characteristic.value else { return }
             var values = [UInt8](data)
             data.copyBytes(to: &values, count: data.count)
-            let responseString = String(bytes: data, encoding: .utf8)
-            print("TX: \(String(describing: responseString))")
+			
+			if let responseString = String(bytes: data, encoding: .utf8) {
+				parseResponse(responseString)
+			}
             break
         case characteristicTruconnectModeUUID:
             guard let data = characteristic.value else { return }
@@ -220,7 +232,6 @@ extension ServicesTableViewController {
 		
 		let bapiCommand = parseData(bapiString: bapi)
        	guard let data = bapiCommand.data(using: .utf8) else { return }
-		print("send bapi: \(bapiCommand)")
 
 		let length = data.count
 		let chunkSize = 20
@@ -290,4 +301,14 @@ extension ServicesTableViewController {
         let result = a % 256
         return UInt8(result)
     }
+	
+	fileprivate func parseResponse(_ response: String) {
+		if let object = parser.parse(response: response),
+			let functionality = lastFunctionality {
+			
+			functionality.manageResponse(with: object)
+			tableView.isUserInteractionEnabled = true
+			lastFunctionality = nil
+		}
+	}
 }
