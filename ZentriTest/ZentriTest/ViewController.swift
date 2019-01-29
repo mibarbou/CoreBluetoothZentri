@@ -21,6 +21,10 @@ class ViewController: UIViewController {
         setup()
         initBluetoothServices()
     }
+	
+	override func viewDidAppear(_ animated: Bool) {
+		tableView.reloadData()
+	}
 
     func setup() {
         self.title = "ZENTRI"

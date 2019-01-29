@@ -85,10 +85,11 @@ class ServicesTableViewController: UITableViewController {
 		
         cell.nameLabel.text = name
 		
-		if currentMode == remoteMode {
-			cell.okLabel.backgroundColor = .clear
-		} else if currentMode == streamMode {
-			cell.okLabel.backgroundColor = validBapis[functionality] ?? false ? .green : .red
+		cell.okLabel.backgroundColor = .clear
+		if currentMode == streamMode {
+			cell.okLabel.text = validBapis[functionality] ?? false ? "✅" : "❗️"
+		} else if currentMode == remoteMode {
+			cell.okLabel.text = ""
 		}
 		
         return cell
@@ -99,7 +100,11 @@ class ServicesTableViewController: UITableViewController {
 	
 	override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
 		
+		let cell = tableView.cellForRow(at: indexPath) as? FunctionalityCell
+		
 		if currentMode == streamMode {
+			
+			cell?.okLabel.text = "🖖"
 			let functionality = functionalities[indexPath.row]
 			
 			if let bapiJSON = functionality.createBapi(id: 123) {
@@ -114,6 +119,7 @@ class ServicesTableViewController: UITableViewController {
 			let command = commands[indexPath.row]
 			send(command: command.command)
 			if command.needSave {
+				cell?.okLabel.text = "🖖"
 				self.tableView.isUserInteractionEnabled = false
 				lastCommand = command
 			}
@@ -142,6 +148,7 @@ extension ServicesTableViewController: CBCentralManagerDelegate {
     
     func centralManager(_ central: CBCentralManager, didConnect peripheral: CBPeripheral) {
         print("Connected!")
+		currentMode = streamMode
         self.peripheral.delegate = self
         self.peripheral.discoverServices([serviceTruconnectUUID])
     }
@@ -170,7 +177,7 @@ extension ServicesTableViewController: CBPeripheralDelegate {
         guard let characteristics = service.characteristics else { return }
         self.characteristics = characteristics
         _ = characteristics.map{ subscribeTo(characteristic: $0) }
-        self.tableView.reloadData()
+        reloadData()
 		self.tableView.isUserInteractionEnabled = true
 		navigationItem.rightBarButtonItem?.isEnabled = true
     }
@@ -201,8 +208,7 @@ extension ServicesTableViewController: CBPeripheralDelegate {
 				print("New mode")
 				print(String(describing: modeString))
 			}
-			tableView.reloadData()
-			updateModeButton()
+			reloadData()
             break
         default:
             break
@@ -214,7 +220,8 @@ extension ServicesTableViewController: CBPeripheralDelegate {
 
 extension ServicesTableViewController {
 	
-	fileprivate func updateModeButton() {
+	fileprivate func reloadData() {
+		tableView.reloadData()
 		navigationItem.rightBarButtonItem?.title = currentMode == streamMode ? "Mode Remote" : "Mode Stream"
 		self.title = currentMode == streamMode ? "Stream" : "Remote"
 	}
@@ -285,7 +292,11 @@ extension ServicesTableViewController {
 		
 		let bapiCommand = parseData(bapiString: bapi)
        	guard let data = bapiCommand.data(using: .utf8) else { return }
-
+		sendData(data)
+		
+    }
+	
+	func sendData(_ data: Data) {
 		let length = data.count
 		let chunkSize = 20
 		var offset = 0
@@ -305,13 +316,12 @@ extension ServicesTableViewController {
 			offset += thisChunkSize;
 			
 		} while (offset < length);
-		
-    }
+	}
 	
 	func send(command: String) {
 		
 		guard let data = "\(command)\r\n".data(using: .utf8) else { return }
-		self.peripheral.writeValue(data, for: rxCharacteristic!, type: .withResponse)
+		sendData(data)
 		
 	}
     
@@ -369,7 +379,7 @@ extension ServicesTableViewController {
 				
 				let validBapi = functionality.manageResponse(with: object)
 				validBapis[functionality] = validBapi
-				tableView.reloadData()
+				reloadData()
 				tableView.isUserInteractionEnabled = true
 				lastFunctionality = nil
 			}
@@ -388,6 +398,14 @@ extension ServicesTableViewController {
 			
 			if let nextCommand = self.commandParser?.nextCommand(response: response, for: lastCommand) {
 				send(command: nextCommand)
+				
+				if nextCommand == "reboot" {
+					print("¡¡¡¡¡¡¡¡¡¡REBOOTED!!!!!!!!")
+					tableView.isUserInteractionEnabled = true
+					self.lastCommand = nil
+					commandParser = nil
+				}
+				
 				return
 			}
 			
