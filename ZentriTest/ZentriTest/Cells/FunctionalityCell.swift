@@ -12,11 +12,14 @@ class FunctionalityCell: UITableViewCell {
     static let identifier = "CharacteristicCell"
     
     @IBOutlet weak var nameLabel: UILabel!
-    
+	@IBOutlet weak var okLabel: UILabel!
+	
     override func awakeFromNib() {
         super.awakeFromNib()
         nameLabel.adjustsFontSizeToFitWidth = true
-    }
+		okLabel.text = "❗️"
+		
+	}
 
     override func setSelected(_ selected: Bool, animated: Bool) {
         super.setSelected(selected, animated: animated)

@@ -48,32 +48,46 @@ enum Functionality: CaseIterable {
 		}
 	}
 	
-	func manageResponse(with json: String) {
+	func manageResponse(with json: String) -> Bool {
 		
 		switch self {
 		case .block:
 			if let _ = json.toObject(BapiResponse<String>.self) {
 				print("block success")
+				return true
+			} else {
+				return false
 			}
 		case .unblock:
 			if let _ = json.toObject(BapiResponse<String>.self) {
 				print("unblock success")
+				return true
+			} else {
+				return false
 			}
 		case .readFirmwareVersion:
 			if let object = json.toObject(BapiResponse<Int>.self) {
 				print("firmware version is \(object.response ?? 0)")
+				return true
+			} else {
+				return false
 			}
 		case .readSerialNumber:
 			if let object = json.toObject(BapiResponse<Int>.self) {
 				print(object)
+				return true
 			} else {
 				//This is always nil because charger answers r: 0000XXX as an integer which is a corrupted integer,
 				//so the toObject function does not recognize it as a correct data
 				print("error reading serial number")
+				return false
 			}
 		case .readState:
 			if let object = json.toObject(BapiResponse<State>.self) {
 				print(object.response ?? "no state")
+				return true
+			} else {
+				return false
 			}
 		}
 	}	
