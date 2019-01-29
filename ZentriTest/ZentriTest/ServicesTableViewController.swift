@@ -9,11 +9,7 @@
 import UIKit
 import CoreBluetooth
 
-protocol BapiSender {
-	func send(bapi: String)
-}
-
-class ServicesTableViewController: UITableViewController, BapiSender {
+class ServicesTableViewController: UITableViewController {
     let serviceTruconnectUUID = CBUUID(string: "175f8f23-a570-49bd-9627-815a6a27de2a")
     let characteristicTruconnectPeripheralRXUUID = CBUUID(string: "1cce1ea8-bd34-4813-a00a-c76e028fadcb")
     let characteristicTruconnectPeripheralTXUUID = CBUUID(string: "cacc07ff-ffff-4c48-8fae-a9ef71b75e26")
@@ -21,6 +17,8 @@ class ServicesTableViewController: UITableViewController, BapiSender {
     
     var streamMode = 1
     var remoteMode = 3
+	
+	var currentMode = 1
     
     let centralManager: CBCentralManager
     let peripheral :CBPeripheral
@@ -34,9 +32,14 @@ class ServicesTableViewController: UITableViewController, BapiSender {
 	
 	var functionalities = Functionality.allCases
 	var lastFunctionality: Functionality? = nil
+	var commands = Command.allCases
+	var lastCommand: Command? = nil
 	
-	let parser = ResponseParser()
-    
+	let responseParser = ResponseParser()
+	var commandParser: CommandParser? = nil
+	
+	var validBapis: [Functionality: Bool] = [:]
+	
     init(manager: CBCentralManager, peripheral: CBPeripheral) {
         self.centralManager = manager
         self.peripheral = peripheral
@@ -54,10 +57,13 @@ class ServicesTableViewController: UITableViewController, BapiSender {
     }
     
     func setup() {
-        self.title = "Functionalities"
+        self.title = "Stream"
         tableView.register(UINib(nibName: FunctionalityCell.identifier, bundle: .main), forCellReuseIdentifier: FunctionalityCell.identifier)
         tableView.rowHeight = 60.0
 		tableView.isUserInteractionEnabled = false
+		navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Mode Remote", style: .plain, target: self, action: #selector(commandTapped))
+		navigationItem.rightBarButtonItem?.isEnabled = false
+		
     }
 
     // MARK: - Table view data source
@@ -67,13 +73,24 @@ class ServicesTableViewController: UITableViewController, BapiSender {
     }
 
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return functionalities.count
+		return currentMode == streamMode ? functionalities.count : commands.count
     }
 
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: FunctionalityCell.identifier, for: indexPath) as! FunctionalityCell
 		
-        cell.nameLabel.text = functionalities[indexPath.row].name
+		let functionality = functionalities[indexPath.row]
+		
+		let name = currentMode == streamMode ? functionality.name : commands[indexPath.row].name
+		
+        cell.nameLabel.text = name
+		
+		if currentMode == remoteMode {
+			cell.okLabel.backgroundColor = .clear
+		} else if currentMode == streamMode {
+			cell.okLabel.backgroundColor = validBapis[functionality] ?? false ? .green : .red
+		}
+		
         return cell
     }
     
@@ -81,14 +98,38 @@ class ServicesTableViewController: UITableViewController, BapiSender {
 
 	
 	override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        let functionality = functionalities[indexPath.row]
 		
-		if let bapiJSON = functionality.createBapi(id: 123) {
-			send(bapi: bapiJSON)
-			tableView.isUserInteractionEnabled = false
-			lastFunctionality = functionality
+		if currentMode == streamMode {
+			let functionality = functionalities[indexPath.row]
+			
+			if let bapiJSON = functionality.createBapi(id: 123) {
+				send(bapi: bapiJSON)
+				self.tableView.isUserInteractionEnabled = false
+				lastFunctionality = functionality
+			}
+			return
+		}
+		
+		if currentMode == remoteMode {
+			let command = commands[indexPath.row]
+			send(command: command.command)
+			if command.needSave {
+				self.tableView.isUserInteractionEnabled = false
+				lastCommand = command
+			}
+			return
 		}
     }
+	
+	@objc func commandTapped() {
+		if currentMode == streamMode {
+			writeRemoteMode()
+			currentMode = remoteMode
+		} else if currentMode == remoteMode {
+			writeStreamMode()
+			currentMode = streamMode
+		}
+	}
 
 }
 
@@ -113,6 +154,7 @@ extension ServicesTableViewController: CBCentralManagerDelegate {
     
     func centralManager(_ central: CBCentralManager, didDisconnectPeripheral peripheral: CBPeripheral, error: Error?) {
         print("Disconnected Peripheral: \(peripheral.name ?? "unknown")")
+		connectPeripheral()
     }
 }
 
@@ -130,6 +172,7 @@ extension ServicesTableViewController: CBPeripheralDelegate {
         _ = characteristics.map{ subscribeTo(characteristic: $0) }
         self.tableView.reloadData()
 		self.tableView.isUserInteractionEnabled = true
+		navigationItem.rightBarButtonItem?.isEnabled = true
     }
     
     func peripheral(_ peripheral: CBPeripheral, didUpdateValueFor characteristic: CBCharacteristic, error: Error?) {
@@ -154,8 +197,12 @@ extension ServicesTableViewController: CBPeripheralDelegate {
             guard let data = characteristic.value else { return }
             var values = [UInt8](data)
             data.copyBytes(to: &values, count: data.count)
-            let modeString = String(bytes: data, encoding: .utf8)
-            print("MODE: \(String(describing: modeString))")
+			if let modeString = String(bytes: data, encoding: .utf8){
+				print("New mode")
+				print(String(describing: modeString))
+			}
+			tableView.reloadData()
+			updateModeButton()
             break
         default:
             break
@@ -166,6 +213,12 @@ extension ServicesTableViewController: CBPeripheralDelegate {
 //MARK: - Utils
 
 extension ServicesTableViewController {
+	
+	fileprivate func updateModeButton() {
+		navigationItem.rightBarButtonItem?.title = currentMode == streamMode ? "Mode Remote" : "Mode Stream"
+		self.title = currentMode == streamMode ? "Stream" : "Remote"
+	}
+	
     fileprivate func connectPeripheral() {
         centralManager.connect(self.peripheral, options: nil)
         centralManager.delegate = self
@@ -181,13 +234,13 @@ extension ServicesTableViewController {
         let actionStreamMode = UIAlertAction(title: "Stream mode",
                                              style: .default) { action in
                                                 print("activate stream mode")
-                                                self.writeStreamMode(characteristic: characteristic)
+                                                self.writeStreamMode()
                                             }
         
         let actionRemoteMode = UIAlertAction(title: "Remote mode",
                                              style: .default) { action in
                                                 print("activate remote mode")
-                                                self.writeRemoteMode(characteristic: characteristic)
+                                                self.writeRemoteMode()
         }
         let cancelAction = UIAlertAction(title: "Cancel",
                                          style: .cancel,
@@ -216,16 +269,16 @@ extension ServicesTableViewController {
     }
     
     
-    fileprivate func writeStreamMode(characteristic: CBCharacteristic) {
+    fileprivate func writeStreamMode() {
         let data = Data(bytes: &streamMode,
                         count: 1)
-        self.peripheral.writeValue(data, for: characteristic, type: .withResponse)
+        self.peripheral.writeValue(data, for: modeCharacteristic!, type: .withResponse)
     }
     
-    fileprivate func writeRemoteMode(characteristic: CBCharacteristic) {
+    fileprivate func writeRemoteMode() {
         let data = Data(bytes: &remoteMode,
                         count: 1)
-        self.peripheral.writeValue(data, for: characteristic, type: .withResponse)
+        self.peripheral.writeValue(data, for: modeCharacteristic!, type: .withResponse)
     }
     
 	 func send(bapi: String) {
@@ -254,6 +307,13 @@ extension ServicesTableViewController {
 		} while (offset < length);
 		
     }
+	
+	func send(command: String) {
+		
+		guard let data = "\(command)\r\n".data(using: .utf8) else { return }
+		self.peripheral.writeValue(data, for: rxCharacteristic!, type: .withResponse)
+		
+	}
     
     fileprivate func parseData(bapiString: String) -> String {
 		
@@ -303,12 +363,39 @@ extension ServicesTableViewController {
     }
 	
 	fileprivate func parseResponse(_ response: String) {
-		if let object = parser.parse(response: response),
-			let functionality = lastFunctionality {
-			
-			functionality.manageResponse(with: object)
-			tableView.isUserInteractionEnabled = true
-			lastFunctionality = nil
+		if currentMode == streamMode {
+			if let object = responseParser.parse(response: response),
+				let functionality = lastFunctionality {
+				
+				let validBapi = functionality.manageResponse(with: object)
+				validBapis[functionality] = validBapi
+				tableView.reloadData()
+				tableView.isUserInteractionEnabled = true
+				lastFunctionality = nil
+			}
+			return
 		}
+		
+		if currentMode == remoteMode {
+			print(response)
+			guard response.contains("Success"),
+				let lastCommand = self.lastCommand else { return }
+			
+			if commandParser == nil {
+				commandParser = CommandParser()
+			}
+		
+			
+			if let nextCommand = self.commandParser?.nextCommand(response: response, for: lastCommand) {
+				send(command: nextCommand)
+				return
+			}
+			
+			tableView.isUserInteractionEnabled = true
+			self.lastCommand = nil
+			commandParser = nil
+			return
+		}
+		
 	}
 }
