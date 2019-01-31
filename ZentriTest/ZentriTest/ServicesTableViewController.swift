@@ -37,8 +37,11 @@ class ServicesTableViewController: UITableViewController {
 	
 	let responseParser = ResponseParser()
 	var commandParser: CommandParser? = nil
+	var firmwareUpdate: FirmwareUpdate? = nil
 	
 	var validBapis: [Functionality: Bool] = [:]
+	
+	var shouldReconnect = true
 	
     init(manager: CBCentralManager, peripheral: CBPeripheral) {
         self.centralManager = manager
@@ -55,6 +58,12 @@ class ServicesTableViewController: UITableViewController {
         setup()
         connectPeripheral()
     }
+	
+	override func viewWillDisappear(_ animated: Bool) {
+		shouldReconnect = false
+		centralManager.cancelPeripheralConnection(self.peripheral)
+		
+	}
     
     func setup() {
         self.title = "Stream"
@@ -78,16 +87,14 @@ class ServicesTableViewController: UITableViewController {
 
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: FunctionalityCell.identifier, for: indexPath) as! FunctionalityCell
-		
-		let functionality = functionalities[indexPath.row]
-		
-		let name = currentMode == streamMode ? functionality.name : commands[indexPath.row].name
+	
+		let name = currentMode == streamMode ? functionalities[indexPath.row].name : commands[indexPath.row].name
 		
         cell.nameLabel.text = name
 		
 		cell.okLabel.backgroundColor = .clear
 		if currentMode == streamMode {
-			cell.okLabel.text = validBapis[functionality] ?? false ? "✅" : "❗️"
+			cell.okLabel.text = validBapis[functionalities[indexPath.row]] ?? false ? "✅" : "❗️"
 		} else if currentMode == remoteMode {
 			cell.okLabel.text = ""
 		}
@@ -117,6 +124,15 @@ class ServicesTableViewController: UITableViewController {
 		
 		if currentMode == remoteMode {
 			let command = commands[indexPath.row]
+			
+			if command == .updateFirmware {
+				firmwareUpdate = FirmwareUpdate(mode: currentMode == streamMode ? .stream : .remote)
+				if case let FirmwareUpdate.Action.command(command) = firmwareUpdate!.nextAction(response: "") {
+					send(command: command)
+				}
+				return
+			}
+			
 			send(command: command.command)
 			if command.needSave {
 				cell?.okLabel.text = "🖖"
@@ -148,9 +164,14 @@ extension ServicesTableViewController: CBCentralManagerDelegate {
     
     func centralManager(_ central: CBCentralManager, didConnect peripheral: CBPeripheral) {
         print("Connected!")
+		self.peripheral.delegate = self
+		self.peripheral.discoverServices([serviceTruconnectUUID])
+		
+		if self.firmwareUpdate != nil {
+			return
+		}
+		
 		currentMode = streamMode
-        self.peripheral.delegate = self
-        self.peripheral.discoverServices([serviceTruconnectUUID])
     }
     
     func centralManager(_ central: CBCentralManager, didFailToConnect peripheral: CBPeripheral, error: Error?) {
@@ -161,7 +182,9 @@ extension ServicesTableViewController: CBCentralManagerDelegate {
     
     func centralManager(_ central: CBCentralManager, didDisconnectPeripheral peripheral: CBPeripheral, error: Error?) {
         print("Disconnected Peripheral: \(peripheral.name ?? "unknown")")
-		connectPeripheral()
+		if shouldReconnect {
+			connectPeripheral()
+		}
     }
 }
 
@@ -176,10 +199,24 @@ extension ServicesTableViewController: CBPeripheralDelegate {
     func peripheral(_ peripheral: CBPeripheral, didDiscoverCharacteristicsFor service: CBService, error: Error?) {
         guard let characteristics = service.characteristics else { return }
         self.characteristics = characteristics
-        _ = characteristics.map{ subscribeTo(characteristic: $0) }
-        reloadData()
+        characteristics.forEach { subscribeTo(characteristic: $0) }
+		
 		self.tableView.isUserInteractionEnabled = true
 		navigationItem.rightBarButtonItem?.isEnabled = true
+		
+		if let firmwareUpdate = self.firmwareUpdate {
+			if firmwareUpdate.currentMode == .remote && currentMode == streamMode {
+				writeRemoteMode()
+			} else if firmwareUpdate.currentMode == .stream && currentMode == remoteMode {
+				writeStreamMode()
+			}
+			
+			if case let FirmwareUpdate.Action.command(command) = firmwareUpdate.nextAction(response: "") {
+				send(command: command)
+			}
+			
+			return
+		}
     }
     
     func peripheral(_ peripheral: CBPeripheral, didUpdateValueFor characteristic: CBCharacteristic, error: Error?) {
@@ -208,7 +245,15 @@ extension ServicesTableViewController: CBPeripheralDelegate {
 				print("New mode")
 				print(String(describing: modeString))
 			}
-			reloadData()
+			if let firmwareUpdate = self.firmwareUpdate {
+				firmwareUpdate.currentMode = currentMode == streamMode ? .stream : .remote
+				if case let FirmwareUpdate.Action.command(command) = firmwareUpdate.nextAction(response: "") {
+					send(command: command)
+					return
+				}
+			}
+			
+			self.reloadData()
             break
         default:
             break
@@ -221,9 +266,9 @@ extension ServicesTableViewController: CBPeripheralDelegate {
 extension ServicesTableViewController {
 	
 	fileprivate func reloadData() {
-		tableView.reloadData()
 		navigationItem.rightBarButtonItem?.title = currentMode == streamMode ? "Mode Remote" : "Mode Stream"
 		self.title = currentMode == streamMode ? "Stream" : "Remote"
+		tableView.reloadData()
 	}
 	
     fileprivate func connectPeripheral() {
@@ -235,30 +280,6 @@ extension ServicesTableViewController {
         self.peripheral.discoverCharacteristics(nil, for: service)
     }
 	
-    
-    fileprivate func showModeActionSheet(characteristic: CBCharacteristic) {
-        let alert = UIAlertController(title: "ZENTRI MODE", message: "Choose the mode", preferredStyle: .actionSheet)
-        let actionStreamMode = UIAlertAction(title: "Stream mode",
-                                             style: .default) { action in
-                                                print("activate stream mode")
-                                                self.writeStreamMode()
-                                            }
-        
-        let actionRemoteMode = UIAlertAction(title: "Remote mode",
-                                             style: .default) { action in
-                                                print("activate remote mode")
-                                                self.writeRemoteMode()
-        }
-        let cancelAction = UIAlertAction(title: "Cancel",
-                                         style: .cancel,
-                                         handler: nil)
-        alert.addAction(actionStreamMode)
-        alert.addAction(actionRemoteMode)
-        alert.addAction(cancelAction)
-        
-        self.present(alert, animated: true, completion: nil)
-    }
-    
     fileprivate func subscribeTo(characteristic: CBCharacteristic) {
         switch characteristic.uuid {
         case characteristicTruconnectPeripheralRXUUID:
@@ -277,12 +298,14 @@ extension ServicesTableViewController {
     
     
     fileprivate func writeStreamMode() {
+		currentMode = streamMode
         let data = Data(bytes: &streamMode,
                         count: 1)
         self.peripheral.writeValue(data, for: modeCharacteristic!, type: .withResponse)
     }
     
     fileprivate func writeRemoteMode() {
+		currentMode = remoteMode
         let data = Data(bytes: &remoteMode,
                         count: 1)
         self.peripheral.writeValue(data, for: modeCharacteristic!, type: .withResponse)
@@ -388,8 +411,34 @@ extension ServicesTableViewController {
 		
 		if currentMode == remoteMode {
 			print(response)
-			guard response.contains("Success"),
-				let lastCommand = self.lastCommand else { return }
+			
+			guard response.contains("Success") else {
+				
+				if let firmwareUpdate = self.firmwareUpdate {
+					if case let FirmwareUpdate.Action.command(command) = firmwareUpdate.nextAction(response: response) {
+						send(command: command)
+					}
+				}
+				return
+			}
+			
+			if let firmwareUpdate = self.firmwareUpdate {
+				
+				let nextAction = firmwareUpdate.nextAction(response: response)
+				
+				if case let FirmwareUpdate.Action.command(command) = nextAction {
+					send(command: command)
+				} else if case let FirmwareUpdate.Action.changeMode(mode) = nextAction {
+					if mode == .stream {
+						writeStreamMode()
+					} else if mode == .remote {
+						writeRemoteMode()
+					}
+				}
+				return
+			}
+			
+			guard let lastCommand = self.lastCommand else { return }
 			
 			if commandParser == nil {
 				commandParser = CommandParser()

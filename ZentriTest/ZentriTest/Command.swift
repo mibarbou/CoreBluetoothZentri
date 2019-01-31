@@ -11,6 +11,7 @@ import Foundation
 enum Command: CaseIterable {
 	case getAllData
 	case changeName
+	case updateFirmware
 	
 	var name: String {
 		switch self {
@@ -18,6 +19,8 @@ enum Command: CaseIterable {
 			return "Retrive all BLE data"
 		case .changeName:
 			return "Change BLE name"
+		case .updateFirmware:
+			return "Update firmware (just for pulsar!!)"
 		}
 	}
 	
@@ -27,6 +30,8 @@ enum Command: CaseIterable {
 			return "get al"
 		case .changeName:
 			return "set sy d n WB001134"
+		case .updateFirmware:
+			return "FIRMWARE"
 		}
 	}
 	
@@ -36,6 +41,8 @@ enum Command: CaseIterable {
 			return false
 		case .changeName:
 			return true
+		case .updateFirmware:
+			return false
 		}
 	}
 }
