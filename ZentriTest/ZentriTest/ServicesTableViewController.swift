@@ -166,12 +166,12 @@ extension ServicesTableViewController: CBCentralManagerDelegate {
         print("Connected!")
 		self.peripheral.delegate = self
 		self.peripheral.discoverServices([serviceTruconnectUUID])
+		currentMode = streamMode
 		
 		if self.firmwareUpdate != nil {
 			return
 		}
 		
-		currentMode = streamMode
     }
     
     func centralManager(_ central: CBCentralManager, didFailToConnect peripheral: CBPeripheral, error: Error?) {
