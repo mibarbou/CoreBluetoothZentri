@@ -8,6 +8,7 @@
 
 import UIKit
 import CoreBluetooth
+import WallboxBluetooth
 
 class ViewController: UIViewController {
     
@@ -15,11 +16,26 @@ class ViewController: UIViewController {
     var centralManager: CBCentralManager!
     
     var peripherals: [CBPeripheral] = []
+    
+    let wallboxBluetooth = WallboxBluetooth()
+    
+    var devices: [WallboxDevice] = []
 
     override func viewDidLoad() {
         super.viewDidLoad()
         setup()
-        initBluetoothServices()
+//        initBluetoothServices()
+        
+        
+        wallboxBluetooth.startScan(deviceFound: { [unowned self] (device) in
+            print("device found: \(device.name ?? "")")
+            self.devices.append(device)
+            self.devices = self.devices.sorted{ $0.name! < $1.name! }
+            self.tableView.reloadData()
+        }) { (error) in
+            print(error)
+        }
+        
     }
 	
 	override func viewDidAppear(_ animated: Bool) {
@@ -39,22 +55,30 @@ class ViewController: UIViewController {
 
 extension ViewController: UITableViewDataSource, UITableViewDelegate {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return peripherals.count
+        return devices.count
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: PeripheralCell.identifier, for: indexPath) as! PeripheralCell
-        let peripheral = peripherals[indexPath.row]
+        let device = devices[indexPath.row]
         cell.delegate = self
-        cell.configureWith(peripheral: peripheral)
+        cell.nameLabel.text = device.name ?? "unknown"
         return cell
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        let peripheral = peripherals[indexPath.row]
-        let servicesVC = ServicesTableViewController(manager: self.centralManager,
-                                                     peripheral: peripheral)
-        self.navigationController?.pushViewController(servicesVC, animated: true)
+        let device = devices[indexPath.row]
+        
+        wallboxBluetooth.connect(device: device,
+                                 success: { (device) in
+                                    print("device connected: \(device)")
+        }, failure: { (error) in
+            print(error)
+        })
+        
+//        let servicesVC = ServicesTableViewController(manager: self.centralManager,
+//                                                     peripheral: peripheral)
+//        self.navigationController?.pushViewController(servicesVC, animated: true)
     }
 }
 
@@ -79,7 +103,7 @@ extension ViewController: CBCentralManagerDelegate {
             print("central.state is .poweredOff")
         case .poweredOn:
             print("central.state is .poweredOn")
-            centralManager.scanForPeripherals(withServices: nil)
+            centralManager.scanForPeripherals(withServices: [CBUUID(string: "175f8f23-a570-49bd-9627-815a6a27de2a")])
         }
     }
     
@@ -94,4 +118,5 @@ extension ViewController: CBCentralManagerDelegate {
         }
     }
 }
+
 

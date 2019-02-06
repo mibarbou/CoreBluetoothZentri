@@ -1,0 +1,11 @@
+framework module WallboxBluetooth {
+  umbrella header "WallboxBluetooth.h"
+
+  export *
+  module * { export * }
+}
+
+module WallboxBluetooth.Swift {
+    header "WallboxBluetooth-Swift.h"
+    requires objc
+}
