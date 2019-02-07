@@ -29,6 +29,8 @@ open class WallboxBluetooth: NSObject {
     fileprivate var peripherals: [CBPeripheral] = []
     fileprivate var peripheral :CBPeripheral?
     fileprivate var isBluetoothAvailable = false
+    
+    fileprivate var currentConnectedDevice: WallboxDevice?
     fileprivate var rxCharacteristic: CBCharacteristic?
     fileprivate var txCharacteristic: CBCharacteristic?
     fileprivate var modeCharacteristic: CBCharacteristic?
@@ -71,7 +73,6 @@ extension WallboxBluetooth {
         deviceConnectedClosure = success
         connectFailureClosure = failure
         do {
-            
             let peripheral = try getPeripheralWith(identifier: device.identifier)
             self.centralManager.connect(peripheral, options: nil)
         } catch WallboxBluetoothError.deviceNotFound {
@@ -141,6 +142,20 @@ extension WallboxBluetooth {
         default:
             break
         }
+        
+        if let rxChar = rxCharacteristic,
+            let txChar = txCharacteristic,
+            let modeChar = modeCharacteristic,
+            var device = currentConnectedDevice,
+            let closure = deviceFoundClosure {
+                device.rxCharacteristic = rxChar
+                device.txCharacteristic = txChar
+                device.modeCharacteristic = modeChar
+                closure(device)
+                rxCharacteristic = nil
+                txCharacteristic = nil
+                modeCharacteristic = nil
+        }
     }
 }
 
@@ -193,9 +208,11 @@ extension WallboxBluetooth: CBCentralManagerDelegate {
     }
     
     public func centralManager(_ central: CBCentralManager, didConnect peripheral: CBPeripheral) {
-        if let closure = deviceConnectedClosure {
-            let device = CBPeripheralToWallboxDevice.map(input: peripheral)
-        }
+        let device = CBPeripheralToWallboxDevice.map(input: peripheral)
+        self.currentConnectedDevice = device
+        print("device connected: \(device.name ?? "unknown")")
+        peripheral.delegate = self
+        peripheral.discoverServices([serviceTruconnectUUID])
     }
     
     public func centralManager(_ central: CBCentralManager, didFailToConnect peripheral: CBPeripheral, error: Error?) {
@@ -218,7 +235,10 @@ extension WallboxBluetooth: CBPeripheralDelegate {
     
     public func peripheral(_ peripheral: CBPeripheral, didDiscoverServices error: Error?) {
         guard let service = peripheral.services?.first else { return }
-        peripheral.discoverCharacteristics(nil, for: service)
+        peripheral.discoverCharacteristics([characteristicTruconnectPeripheralRXUUID,
+                                            characteristicTruconnectPeripheralTXUUID,
+                                            characteristicTruconnectModeUUID],
+                                           for: service)
     }
     
     public func peripheral(_ peripheral: CBPeripheral, didDiscoverCharacteristicsFor service: CBService, error: Error?) {
