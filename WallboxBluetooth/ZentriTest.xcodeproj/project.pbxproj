@@ -17,6 +17,8 @@
 		2F8FB8812200A2530057A662 /* FirmwareUpdate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F8FB8802200A2530057A662 /* FirmwareUpdate.swift */; };
 		2F8FB8842201F57B0057A662 /* firmware.txt in Resources */ = {isa = PBXBuildFile; fileRef = 2F8FB8822201F57B0057A662 /* firmware.txt */; };
 		2F8FB8852201F57B0057A662 /* kernel.txt in Resources */ = {isa = PBXBuildFile; fileRef = 2F8FB8832201F57B0057A662 /* kernel.txt */; };
+		D0478348220C7403005EF3CA /* WallboxBluetooth.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D07F6801220AF8E900C1E794 /* WallboxBluetooth.framework */; };
+		D0478349220C7403005EF3CA /* WallboxBluetooth.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = D07F6801220AF8E900C1E794 /* WallboxBluetooth.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		D04FE89721EF5017003600EF /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = D04FE89621EF5017003600EF /* AppDelegate.swift */; };
 		D04FE89921EF5017003600EF /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D04FE89821EF5017003600EF /* ViewController.swift */; };
 		D04FE89C21EF5017003600EF /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = D04FE89A21EF5017003600EF /* Main.storyboard */; };
@@ -27,18 +29,16 @@
 		D04FE8AE21EF893B003600EF /* ServicesTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D04FE8AD21EF893B003600EF /* ServicesTableViewController.swift */; };
 		D04FE8BB21F0814B003600EF /* FunctionalityCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = D04FE8B921F0814B003600EF /* FunctionalityCell.swift */; };
 		D04FE8BC21F0814B003600EF /* CharacteristicCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = D04FE8BA21F0814B003600EF /* CharacteristicCell.xib */; };
-		D07F6803220AFA4800C1E794 /* WallboxBluetooth.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D07F6801220AF8E900C1E794 /* WallboxBluetooth.framework */; };
-		D07F6804220AFA4800C1E794 /* WallboxBluetooth.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = D07F6801220AF8E900C1E794 /* WallboxBluetooth.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
-		D07F6805220AFA4800C1E794 /* Embed Frameworks */ = {
+		D047834A220C7403005EF3CA /* Embed Frameworks */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				D07F6804220AFA4800C1E794 /* WallboxBluetooth.framework in Embed Frameworks */,
+				D0478349220C7403005EF3CA /* WallboxBluetooth.framework in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -76,7 +76,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				D07F6803220AFA4800C1E794 /* WallboxBluetooth.framework in Frameworks */,
+				D0478348220C7403005EF3CA /* WallboxBluetooth.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -154,7 +154,7 @@
 				D04FE88F21EF5017003600EF /* Sources */,
 				D04FE89021EF5017003600EF /* Frameworks */,
 				D04FE89121EF5017003600EF /* Resources */,
-				D07F6805220AFA4800C1E794 /* Embed Frameworks */,
+				D047834A220C7403005EF3CA /* Embed Frameworks */,
 			);
 			buildRules = (
 			);

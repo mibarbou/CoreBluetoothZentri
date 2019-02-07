@@ -190,12 +190,17 @@ SWIFT_CLASS("_TtC16WallboxBluetooth16WallboxBluetooth")
 
 
 
+@class CBPeripheral;
+@class CBService;
+@class CBCharacteristic;
 
 @interface WallboxBluetooth (SWIFT_EXTENSION(WallboxBluetooth)) <CBPeripheralDelegate>
+- (void)peripheral:(CBPeripheral * _Nonnull)peripheral didDiscoverServices:(NSError * _Nullable)error;
+- (void)peripheral:(CBPeripheral * _Nonnull)peripheral didDiscoverCharacteristicsForService:(CBService * _Nonnull)service error:(NSError * _Nullable)error;
+- (void)peripheral:(CBPeripheral * _Nonnull)peripheral didUpdateValueForCharacteristic:(CBCharacteristic * _Nonnull)characteristic error:(NSError * _Nullable)error;
 @end
 
 @class CBCentralManager;
-@class CBPeripheral;
 @class NSNumber;
 
 @interface WallboxBluetooth (SWIFT_EXTENSION(WallboxBluetooth)) <CBCentralManagerDelegate>
