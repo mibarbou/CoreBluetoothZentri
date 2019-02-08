@@ -26,7 +26,10 @@ class ViewController: UIViewController {
         setup()
 //        initBluetoothServices()
         
-        
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
         wallboxBluetooth.startScan(deviceFound: { [unowned self] (device) in
             print("device found: \(device.name ?? "")")
             self.devices.append(device)
@@ -35,7 +38,6 @@ class ViewController: UIViewController {
         }) { (error) in
             print(error)
         }
-        
     }
 	
 	override func viewDidAppear(_ animated: Bool) {
@@ -68,13 +70,10 @@ extension ViewController: UITableViewDataSource, UITableViewDelegate {
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         let device = devices[indexPath.row]
+        self.wallboxBluetooth.stopScan()
+        let deviceVC = DeviceViewController(bluetooth: self.wallboxBluetooth, device: device)
+        self.navigationController?.pushViewController(deviceVC, animated: true)
         
-        wallboxBluetooth.connect(device: device,
-                                 success: { (device) in
-                                    print("device connected: \(device)")
-        }, failure: { (error) in
-            print(error)
-        })
         
 //        let servicesVC = ServicesTableViewController(manager: self.centralManager,
 //                                                     peripheral: peripheral)

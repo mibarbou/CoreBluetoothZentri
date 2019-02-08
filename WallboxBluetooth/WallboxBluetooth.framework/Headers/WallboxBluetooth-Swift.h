@@ -188,8 +188,6 @@ SWIFT_CLASS("_TtC16WallboxBluetooth16WallboxBluetooth")
 - (nonnull instancetype)init OBJC_DESIGNATED_INITIALIZER;
 @end
 
-
-
 @class CBPeripheral;
 @class CBService;
 @class CBCharacteristic;
@@ -199,6 +197,8 @@ SWIFT_CLASS("_TtC16WallboxBluetooth16WallboxBluetooth")
 - (void)peripheral:(CBPeripheral * _Nonnull)peripheral didDiscoverCharacteristicsForService:(CBService * _Nonnull)service error:(NSError * _Nullable)error;
 - (void)peripheral:(CBPeripheral * _Nonnull)peripheral didUpdateValueForCharacteristic:(CBCharacteristic * _Nonnull)characteristic error:(NSError * _Nullable)error;
 @end
+
+
 
 @class CBCentralManager;
 @class NSNumber;

@@ -19,6 +19,8 @@
 		2F8FB8852201F57B0057A662 /* kernel.txt in Resources */ = {isa = PBXBuildFile; fileRef = 2F8FB8832201F57B0057A662 /* kernel.txt */; };
 		D0478348220C7403005EF3CA /* WallboxBluetooth.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D07F6801220AF8E900C1E794 /* WallboxBluetooth.framework */; };
 		D0478349220C7403005EF3CA /* WallboxBluetooth.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = D07F6801220AF8E900C1E794 /* WallboxBluetooth.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		D047834D220D885F005EF3CA /* DeviceViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D047834B220D885F005EF3CA /* DeviceViewController.swift */; };
+		D047834E220D885F005EF3CA /* DeviceViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = D047834C220D885F005EF3CA /* DeviceViewController.xib */; };
 		D04FE89721EF5017003600EF /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = D04FE89621EF5017003600EF /* AppDelegate.swift */; };
 		D04FE89921EF5017003600EF /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D04FE89821EF5017003600EF /* ViewController.swift */; };
 		D04FE89C21EF5017003600EF /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = D04FE89A21EF5017003600EF /* Main.storyboard */; };
@@ -56,6 +58,8 @@
 		2F8FB8802200A2530057A662 /* FirmwareUpdate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirmwareUpdate.swift; sourceTree = "<group>"; };
 		2F8FB8822201F57B0057A662 /* firmware.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = firmware.txt; sourceTree = "<group>"; };
 		2F8FB8832201F57B0057A662 /* kernel.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = kernel.txt; sourceTree = "<group>"; };
+		D047834B220D885F005EF3CA /* DeviceViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceViewController.swift; sourceTree = "<group>"; };
+		D047834C220D885F005EF3CA /* DeviceViewController.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = DeviceViewController.xib; sourceTree = "<group>"; };
 		D04FE89321EF5017003600EF /* ZentriTest.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ZentriTest.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		D04FE89621EF5017003600EF /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		D04FE89821EF5017003600EF /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
@@ -108,6 +112,8 @@
 				D04FE89621EF5017003600EF /* AppDelegate.swift */,
 				D04FE89821EF5017003600EF /* ViewController.swift */,
 				D04FE8AD21EF893B003600EF /* ServicesTableViewController.swift */,
+				D047834B220D885F005EF3CA /* DeviceViewController.swift */,
+				D047834C220D885F005EF3CA /* DeviceViewController.xib */,
 				D04FE89A21EF5017003600EF /* Main.storyboard */,
 				D04FE8AC21EF74AD003600EF /* Cells */,
 				D04FE89D21EF5019003600EF /* Assets.xcassets */,
@@ -203,6 +209,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D047834E220D885F005EF3CA /* DeviceViewController.xib in Resources */,
 				D04FE8A121EF5019003600EF /* LaunchScreen.storyboard in Resources */,
 				2F8FB8842201F57B0057A662 /* firmware.txt in Resources */,
 				D04FE8BC21F0814B003600EF /* CharacteristicCell.xib in Resources */,
@@ -228,6 +235,7 @@
 				D04FE89721EF5017003600EF /* AppDelegate.swift in Sources */,
 				2F0E66B221FB554800CC840C /* Functionality.swift in Sources */,
 				2F8FB8812200A2530057A662 /* FirmwareUpdate.swift in Sources */,
+				D047834D220D885F005EF3CA /* DeviceViewController.swift in Sources */,
 				2F0E66AE21FB2C2F00CC840C /* Extensions.swift in Sources */,
 				2F0E66B621FF0D4500CC840C /* BapiResponse.swift in Sources */,
 				2F8FB87D22005DD10057A662 /* Command.swift in Sources */,
